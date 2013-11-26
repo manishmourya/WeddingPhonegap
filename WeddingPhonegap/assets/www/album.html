@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Wedding Pics</title>
+        <meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>
+        <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; minimum-scale=1.0; user-scalable=no; target-densityDpi=device-dpi"/>
+        <link rel="stylesheet" href="css/jquery.mobile-1.3.2.min.css" />
+        <script src="js/jquery-1.9.1.min.js"></script>          
+        <script src="js/jquery.mobile-1.3.2.min.js"></script>    
+        <script src="cordova.js"></script>
+        <script src="js/index.js"></script>
+        <script src="js/application.js"></script>
+    </head>
+    <body>
+        <div data-role="page" id="index">
+         
+           <div data-role="header" data-theme="b" data-position="fixed">
+				<a href="#" data-icon="arrow-l" onclick="back();">Back</a>
+                <h1 id="albumHeading">XXXXXXX</h1>
+				<a href="#popupMenu" data-rel="popup" data-icon="grid" id="user">*******</a>
+				<div data-role="popup" id="popupMenu" data-theme="b">
+					<ul data-role="listview" data-inset="true" style="min-width:210px;" data-theme="b">
+						<li data-role="divider" data-theme="b">Options</li>
+						<li><a href="#" onclick="home();">Home</a></li>
+						<li><a href="#" onclick="albums();" data-icon="gear" >Albums</a></li>
+						<li><a href="#" onclick="signout();">Sign out</a></li>
+					</ul>
+				</div>
+            </div>
+            
+
+            <div data-role="content">
+	           <div class="ui-grid-a" style=" text-align: center; ">
+					<div class="ui-block-a">
+						<img id="albumCover" src="img/thumbs/01.jpg" style="width:80%;">
+					</div>
+					<div class="ui-block-b" style=" font-size: 20px; font-weight: bold; color: maroon; ">
+						<label id="weddingDate">XXXXXXXXXXX</label><br/>
+						<div style=" background-color: hsl(60, 11%, 59%);padding-top:10px;padding-bottom: 10px;">
+							<span>Wedding Id</span><br/>
+							<hr/>
+							<span id="weddingId">XXXXXXX</span><br/>
+						</div>
+						<button data-theme="e" id="shareWeddingId">Share Wedding Id</button>
+					</div>
+					
+				</div><!-- /grid-b -->
+				<textarea name="" id="weddingDesc" placeholder="Write some description about your album." data-mini="false" readonly="readonly"></textarea>
+				<button data-theme="a" data-icon="plus" id="clickNewPicture">Add New Picture</button>
+				<hr/>
+				<ul data-role="listview" data-inset="true" id="pictureList">
+				</ul>
+			</div>
+			
+			<div data-role="footer" class="ui-bar" data-position="fixed" data-theme="b">
+				Design by : Manish Maurya	
+				<a href="http://www.derivesoft.com/" style="float:right;margin-right:20px;">&copy DeriveSoft Technology</a>
+			</div>
+			
+        </div>    
+        <script>
+        
+	        if (!isEmpty(window.localStorage.getItem("userName"))) {
+				$("#user").html(window.localStorage.getItem("userName")).trigger("create");
+			}
+	        
+        	fetchAlbumData();
+        	function fetchAlbumData() {
+  				 $.ajax({
+			        type       : "POST",
+			        url        : "http://10.0.2.2:8080/weddingpics/uc/getAlbum?",
+			        crossDomain: true,
+			        data       : {token :window.localStorage.getItem("token"),weddingId:window.localStorage.getItem("weddingId")},
+			        dataType   : 'json',
+			        success    : function(json) {
+			        	if (json.isSuccess && json.album != undefined) {
+			        			if (!isEmpty(json.album.firstUser) && !isEmpty(json.album.secondUser)) {
+			        				$("#albumHeading").html(json.album.firstUser+" & "+json.album.secondUser).trigger("create");
+			        			}
+			        			if (!isEmpty(json.album.description)) {
+			        				$("#weddingDesc").val(json.album.description).trigger("create");
+			        			}
+			        			if (!isEmpty(json.album.formateWeddingDate)) {
+			        				$("#weddingDate").html(json.album.formateWeddingDate).trigger("create");
+			        			}
+			        			if (!isEmpty(json.album.weddingId)) {
+			        				$("#weddingId").html(json.album.weddingId).trigger("create");
+			        			}
+			        			if (!isEmpty(json.album.coverImage)) {
+			        				$("#albumCover").attr("src",json.album.coverImage).trigger("create");
+			        			}
+			        			if (!isEmpty(json.album.coverImage)) {
+			        				$("#albumCover").attr("src",json.album.coverImage).trigger("create");
+			        			}
+			        			if (!isEmpty(json.album.albumId)) {
+			        				$("#clickNewPicture").attr("data-id",json.album.albumId).trigger("create");
+			        			}
+			        			
+			        	} else {
+			        		navigator.notification.alert(json.errorMessage,function () {},'Album Information Faild','OK'); 
+			        	} 
+			        	
+			        	if (json.isSuccess && json.pictures != undefined && json.pictures.length >0) { 
+			        		  var innerHtml = "";
+			        	      for (var i=0;i<json.pictures.length;i++) {
+			        	    	  
+			        	    	  var userImage = "img/unknown_user.png";
+			        	    	  if (!isEmpty(json.pictures[i].user.userImage)) {
+			        	    		  //userImage = json.pictures[i].user.userImage;
+			        	    	  }
+			        	    	  
+			        	    	  innerHtml +=  '<li>'+
+													  '<a href="#" id="'+json.pictures[i].pictureId+'" data-url="'+json.pictures[i].url+'" data-desc="'+json.pictures[i].pictureTitle+'">'+
+														  '<img src="'+userImage+'" style=" width: 40px;" />'+ 
+														  '<span>'+json.pictures[i].user.fullName+'</span>'+
+														  '<span style=" margin-left:2px; ">('+json.pictures[i].formatePictureDate+')</span>'+
+														  '<br/><br/>'+
+														  '<img src="'+json.pictures[i].url+'" style=" width:90%; "/>'+
+														  '<p style="padding: 15px; ">'+json.pictures[i].pictureTitle+'</p>'+
+												     '</a>'+
+									 			  '</li>';
+			        	      }	
+			        	      $('#pictureList').html(innerHtml);
+			        		  $('#pictureList').listview('refresh');
+			        	} else {
+			        		$('#pictureList').html("You not click any picture for this album.");
+		        			$('#pictureList').listview('refresh');
+			        	}
+			        },
+			        error      : function() {
+			            navigator.notification.alert('Error occure while getting album information',function () {},'Album Information Faild','OK');
+			        }
+			    });   
+  		 }
+       	 
+          $("#pictureList").on("click","li" ,function () {
+        		 window.localStorage.setItem("pictureId",$(this).find('a').attr('id'));
+        		 window.localStorage.setItem("pictureUrl",$(this).find('a').data('url'));
+        		 window.localStorage.setItem("pictureDesc",$(this).find('a').data('desc'));
+         		 window.location = "image.html";
+         	  });
+          
+          $("#clickNewPicture").click(function () {
+        	 window.localStorage.setItem("albumId",$(this).data('id'));
+        	 window.location = "camera.html";
+      	  });
+        	
+        </script>
+    </body>
+</html>   

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Wedding Pics</title>
+        <meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>
+        <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; minimum-scale=1.0; user-scalable=no; target-densityDpi=device-dpi"/>
+        <link rel="stylesheet" href="css/jquery.mobile-1.3.2.min.css" />
+        <script src="js/jquery-1.9.1.min.js"></script>          
+        <script src="js/jquery.mobile-1.3.2.min.js"></script>    
+        <script src="cordova.js"></script>
+        <script src="js/index.js"></script>
+        <script src="js/application.js"></script>
+        <script>
+	  
+	    	function login() {
+        				var userEmail =  $('#userEmail').val();
+		        		var password =  $('#password').val();
+		        		if (!isEmpty(userEmail) && !isEmpty(password)) {
+		        		    $.ajax({
+						        type       : "POST",
+						        url        : "http://10.0.2.2:8080/weddingpics/uc/getUser?",
+						        crossDomain: true,
+						        data       : {userEmail : userEmail, password : password},
+						        dataType   : 'json',
+						        success    : function(json) {
+						        	if (json.isSuccess && json.user != undefined) {
+						        		window.localStorage.setItem("token", json.user.token);
+						        		window.localStorage.setItem("userName", json.user.fullName);
+						        		window.location = window.localStorage.getItem("page");
+						        	} else {
+						        		navigator.notification.alert(json.errorMessage,function () {},'Login Fail','OK'); 
+						        	}
+						        },
+						        error      : function() {
+						            navigator.notification.alert('Some technical error occure while login user!',function () {},'Login Fail','OK');
+						        }
+						    });   
+		        		} else if (isEmpty(userEmail)) {
+		        			navigator.notification.alert('User email id not blank!',function () {},'Login Fail','OK');
+		        		} else if (isEmpty(password)) {
+		        			navigator.notification.alert('User password not blank!',function () {},'Login Fail','OK');
+		        		}
+		     }
+        </script>
+    </head>
+    <body>
+        <div data-role="page" id="index">
+            <div data-role="header" data-position="fixed" data-theme="b">
+				<a href="#" data-icon="arrow-l" onclick="back();">Back</a>
+                <h1>Login Page</h1>
+            </div>
+            
+            <div data-role="content" style="text-align: center;margin-top: 50px;">
+	            <input type="text" id="userEmail" placeholder="Entre your email id">
+	            <input type="password" id="password" placeholder="Entre your password">
+	            <br/>
+	            <button onclick="login()" data-theme="e">Login</button>
+	            <br/>
+	            <a href="#" onclick="forgotPassword()">Forgot Password ?</a>
+				<a href="#" onclick="signUp()" style="margin-left: 10px;">Sign Up ?</a>
+			</div>
+			
+			<div data-role="footer" class="ui-bar" data-position="fixed" data-theme="b">
+				Design by : Manish Maurya	
+				<a href="http://www.derivesoft.com/" style="float:right;margin-right:20px;">&copy DeriveSoft Technology</a>
+			</div>
+			
+        </div>    
+    </body>
+</html>   
